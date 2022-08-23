@@ -1,9 +1,25 @@
 const { SlashCommandBuilder, userMention, roleMention } = require('discord.js');
 const wait = require('node:timers/promises').setTimeout;
+const fs = require('fs');
 
-// TODO: let someone reset their selection
+const [MAX_HR, MIN_HR, MAX_MINS, MIN_MINS] = [24, 0, 1440, 0];
+const REQ_PATH = "database.json";
 
-const [MAX_HR, MIN_HR, MAX_MINS, MIN_MINS] = [24, 0, 1440, 0]
+const tomiliseconds = function tomiliseconds(hrs,min) {
+    return (hrs*60*60+min*60)*1000;
+}
+
+const storeData = (data) => {
+    try {
+        fs.writeFile(REQ_PATH, JSON.stringify(data), (err) => {
+            if (err) {
+                console.log(err)
+            }
+        })
+    }   catch (err) {
+        console.log(err)
+    }
+}
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -33,7 +49,19 @@ module.exports = {
         const channel = interaction.channel;
         const usr = interaction.user.id;
 
-        console.log("Hour: " + hr + "\nMin: " + min);
+        let ts = Date.now(); 
+
+        let requestsRaw = fs.readFileSync('database.json', {encoding:'utf-8'});
+
+        let requests = JSON.parse(requestsRaw);
+        console.log(requests);
+
+        let newRequests = {
+            ...requests, 
+            [usr]: {"timestamp": ts}
+        }
+
+        storeData(newRequests);
 
         try {
             if (hr === null && min === null) throw new Error("Time not provided.");
@@ -43,16 +71,19 @@ module.exports = {
 
             let ms = tomiliseconds(hr, min);
             await wait(ms);
-    
-            channel.send(roleMention(role.id) + " let's goooooooooooooooooooo!");
+            
+            let readReqRaw = fs.readFileSync('database.json', {encoding:'utf-8'});
+            let readReq = JSON.parse(readReqRaw);
+  
+            if (readReq[usr].timestamp !== ts) {
+                console.log(ts + " request from " + usr + " was overwritten. Execution blocked.");
+            } else {
+                channel.send(roleMention(role.id) + " let's goooooooooooooooooooo!");
+            }
+
         } catch (e) {
             await interaction.reply({content: e.toString(), ephemeral: true});
             console.log(e);
         }
     },
 };
-
-function tomiliseconds(hrs,min) {
-    console.log('converting to ms');
-    return (hrs*60*60+min*60)*1000;
-}
