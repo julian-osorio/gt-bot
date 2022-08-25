@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const axios = require('axios');
 
-async function getRandomEasyProblem(difficulty) {
+async function getRandomProblem(difficulty) {
     try {
         let res = await axios({
             url: 'https://leetcode.com/api/problems/algorithms/',
