@@ -11,9 +11,8 @@ async function getRandomProblem(difficulty) {
                 'Content-Type': 'application/json',
             }
         })
-        if (res.status == 200) {
-            console.log(res.status + " from leetcode.")
-        }
+        console.log(res.status + ' from MDN Web Docs.');
+
         let questions = res.data.stat_status_pairs;
         let filteredQs = Object.values(questions).filter(q => q.difficulty.level === difficulty);
 
@@ -21,7 +20,6 @@ async function getRandomProblem(difficulty) {
     } catch (err) {
         console.error(err)
     }
-
 }
 
 function makeUrl(titleSlug) {
@@ -43,7 +41,7 @@ module.exports = {
             ) 
     ),
   async execute(interaction) {
-    let title = await getRandomEasyProblem(interaction.options.getInteger('difficulty'));
+    let title = await getRandomProblem(interaction.options.getInteger('difficulty'));
     await interaction.reply(makeUrl(title));
   },
 };
